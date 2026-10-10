@@ -1,0 +1,455 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SpendWise - Profile &amp; Settings</title>
+    <!-- Bootstrap 5 CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="../assets/css/style.css">
+</head>
+<body>
+
+    <!-- Container where navbar.js injects the shared navigation bar -->
+    <div id="navbar-container"></div>
+
+    <div class="container my-4" style="max-width: 900px;">
+        <!-- Header -->
+        <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
+            <div>
+                <h2 class="fw-bold text-primary mb-1">Profile &amp; Settings</h2>
+                <p class="text-muted small mb-0">Manage your personal credentials, display preferences, and account security.</p>
+            </div>
+            <div>
+                <span class="badge bg-secondary-subtle text-secondary border px-3 py-2" id="memberSinceBadge">
+                    Member since: Loading...
+                </span>
+            </div>
+        </div>
+
+        <!-- Global Alert Message -->
+        <div id="globalAlert" class="alert d-none" role="alert"></div>
+
+        <div class="row g-4">
+            <!-- 1. Personal Information Form -->
+            <div class="col-12 col-md-6">
+                <div class="card shadow-sm border-0 h-100">
+                    <div class="card-header bg-white py-3 border-bottom">
+                        <h5 class="card-title fw-bold mb-0 text-dark">👤 Personal Details</h5>
+                    </div>
+                    <div class="card-body">
+                        <form id="profileForm">
+                            <div class="mb-3">
+                                <label for="profileName" class="form-label small fw-semibold">Full Name *</label>
+                                <input type="text" class="form-control" id="profileName" required maxlength="100">
+                            </div>
+
+                            <div class="mb-3">
+                                <label for="profileEmail" class="form-label small fw-semibold">Email Address *</label>
+                                <input type="email" class="form-control" id="profileEmail" required maxlength="100">
+                            </div>
+
+                            <div class="mb-4">
+                                <label for="profilePhone" class="form-label small fw-semibold">Phone Number</label>
+                                <input type="tel" class="form-control" id="profilePhone" placeholder="+91 9876543210" maxlength="20">
+                            </div>
+
+                            <button type="submit" id="saveProfileBtn" class="btn btn-primary w-100">
+                                Save Profile Changes
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 2. Preferences (Currency & Theme) -->
+            <div class="col-12 col-md-6">
+                <div class="card shadow-sm border-0 h-100">
+                    <div class="card-header bg-white py-3 border-bottom">
+                        <h5 class="card-title fw-bold mb-0 text-dark">⚙️ App Preferences</h5>
+                    </div>
+                    <div class="card-body">
+                        <form id="settingsForm">
+                            <!-- Currency Symbol -->
+                            <div class="mb-3">
+                                <label for="settingCurrency" class="form-label small fw-semibold">Preferred Currency Symbol *</label>
+                                <select class="form-select" id="settingCurrency">
+                                    <option value="₹">₹ - Indian Rupee (INR)</option>
+                                    <option value="$">$ - US Dollar (USD)</option>
+                                    <option value="€">€ - Euro (EUR)</option>
+                                    <option value="£">£ - British Pound (GBP)</option>
+                                    <option value="¥">¥ - Japanese Yen / Yuan</option>
+                                    <option value="AED">AED - UAE Dirham</option>
+                                </select>
+                                <div class="form-text">Applied across all your dashboard summaries and transactions.</div>
+                            </div>
+
+                            <!-- Light / Dark Theme -->
+                            <div class="mb-4">
+                                <label class="form-label small fw-semibold">Interface Theme *</label>
+                                <div class="d-flex gap-3 mt-1">
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="radio" name="themeRadio" id="themeLight" value="light" checked>
+                                        <label class="form-check-label" for="themeLight">
+                                            ☀️ Light Mode
+                                        </label>
+                                    </div>
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="radio" name="themeRadio" id="themeDark" value="dark">
+                                        <label class="form-check-label" for="themeDark">
+                                            🌙 Dark Mode
+                                        </label>
+                                    </div>
+                                </div>
+                                <div class="form-text">Saved to your account and applied instantly across every page.</div>
+                            </div>
+
+                            <button type="submit" id="saveSettingsBtn" class="btn btn-success w-100">
+                                Save Preferences
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 3. Change Password -->
+            <div class="col-12">
+                <div class="card shadow-sm border-0">
+                    <div class="card-header bg-white py-3 border-bottom">
+                        <h5 class="card-title fw-bold mb-0 text-dark">🔒 Security &amp; Password</h5>
+                    </div>
+                    <div class="card-body">
+                        <div id="passwordAlert" class="alert d-none" role="alert"></div>
+                        <form id="passwordForm">
+                            <div class="row g-3">
+                                <div class="col-12 col-md-4">
+                                    <label for="oldPassword" class="form-label small fw-semibold">Current Password *</label>
+                                    <input type="password" class="form-control" id="oldPassword" placeholder="Enter current password" required>
+                                </div>
+
+                                <div class="col-12 col-md-4">
+                                    <label for="newPassword" class="form-label small fw-semibold">New Password *</label>
+                                    <input type="password" class="form-control" id="newPassword" placeholder="Min. 6 characters" required>
+                                </div>
+
+                                <div class="col-12 col-md-4">
+                                    <label for="confirmPassword" class="form-label small fw-semibold">Confirm New Password *</label>
+                                    <input type="password" class="form-control" id="confirmPassword" placeholder="Re-type new password" required>
+                                </div>
+                            </div>
+
+                            <div class="text-end mt-4">
+                                <button type="submit" id="changePasswordBtn" class="btn btn-primary px-4">
+                                    Update Password
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 4. Danger Zone: Delete Account -->
+            <div class="col-12">
+                <div class="card shadow-sm border-danger border-2">
+                    <div class="card-header bg-danger-subtle py-3 border-danger">
+                        <h5 class="card-title fw-bold mb-0 text-danger">⚠️ Danger Zone</h5>
+                    </div>
+                    <div class="card-body d-flex justify-content-between align-items-center flex-wrap gap-3">
+                        <div>
+                            <h6 class="fw-bold mb-1 text-dark">Delete Account</h6>
+                            <p class="small text-muted mb-0">
+                                Permanently delete your user profile along with all recorded expenses, budgets, and categories. This action cannot be undone.
+                            </p>
+                        </div>
+                        <button type="button" class="btn btn-outline-danger btn-sm px-3" data-bs-toggle="modal" data-bs-target="#deleteAccountModal">
+                            Delete Account
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Delete Account Confirmation Modal -->
+    <div class="modal fade" id="deleteAccountModal" tabindex="-1" aria-labelledby="deleteAccountModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header bg-danger text-white">
+                    <h5 class="modal-title fw-bold" id="deleteAccountModalLabel">Confirm Account Deletion</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <div id="deleteAccountAlert" class="alert d-none" role="alert"></div>
+                    <p class="text-danger fw-semibold">
+                        Warning: All your financial data, expenses, categories, and active budgets will be erased permanently!
+                    </p>
+                    <p class="small text-muted">
+                        To proceed, please enter your password to confirm your identity:
+                    </p>
+                    <form id="deleteAccountForm">
+                        <div class="mb-3">
+                            <label for="deletePasswordInput" class="form-label small fw-semibold">Your Password *</label>
+                            <input type="password" class="form-control" id="deletePasswordInput" placeholder="Enter password to confirm" required>
+                        </div>
+                        <div class="d-flex justify-content-end gap-2">
+                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                            <button type="submit" id="confirmDeleteBtn" class="btn btn-danger">Permanently Delete</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Bootstrap Bundle JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    <!-- Shared Navbar & Session Guard Script -->
+    <script src="../assets/js/navbar.js"></script>
+
+    <script>
+        let deleteModalInstance = null;
+
+        document.addEventListener("DOMContentLoaded", function () {
+            deleteModalInstance = new bootstrap.Modal(document.getElementById("deleteAccountModal"));
+
+            // Load current profile data
+            loadProfileData();
+
+            // Form Submit Listeners
+            document.getElementById("profileForm").addEventListener("submit", handleUpdateProfile);
+            document.getElementById("settingsForm").addEventListener("submit", handleUpdateSettings);
+            document.getElementById("passwordForm").addEventListener("submit", handleChangePassword);
+            document.getElementById("deleteAccountForm").addEventListener("submit", handleDeleteAccount);
+        });
+
+        // 1. Fetch Profile Data
+        function loadProfileData() {
+            fetch("../api/get_profile.php")
+                .then(res => res.json())
+                .then(response => {
+                    if (response.status !== "success") {
+                        showGlobalAlert(response.message || "Failed to load profile.", "danger");
+                        return;
+                    }
+
+                    const u = response.data;
+                    document.getElementById("profileName").value = u.name;
+                    document.getElementById("profileEmail").value = u.email;
+                    document.getElementById("profilePhone").value = u.phone || "";
+
+                    // Currency
+                    const curSelect = document.getElementById("settingCurrency");
+                    if (u.currency) {
+                        curSelect.value = u.currency;
+                    }
+
+                    // Theme
+                    if (u.theme === "dark") {
+                        document.getElementById("themeDark").checked = true;
+                    } else {
+                        document.getElementById("themeLight").checked = true;
+                    }
+
+                    // Member since
+                    if (u.created_at) {
+                        const dateFormatted = new Date(u.created_at).toLocaleDateString('en-IN', {
+                            day: '2-digit', month: 'short', year: 'numeric'
+                        });
+                        document.getElementById("memberSinceBadge").innerText = `Member since: ${dateFormatted}`;
+                    }
+                })
+                .catch(err => {
+                    console.error("Profile error:", err);
+                    showGlobalAlert("Failed to load profile details.", "danger");
+                });
+        }
+
+        // 2. Update Profile Information
+        function handleUpdateProfile(e) {
+            e.preventDefault();
+
+            const name = document.getElementById("profileName").value.trim();
+            const email = document.getElementById("profileEmail").value.trim();
+            const phone = document.getElementById("profilePhone").value.trim();
+            const btn = document.getElementById("saveProfileBtn");
+
+            btn.disabled = true;
+            btn.innerText = "Saving...";
+
+            fetch("../api/update_profile.php", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ name: name, email: email, phone: phone })
+            })
+            .then(res => res.json())
+            .then(data => {
+                btn.disabled = false;
+                btn.innerText = "Save Profile Changes";
+
+                if (data.status === "success") {
+                    showGlobalAlert(data.data.message, "success");
+                } else {
+                    showGlobalAlert(data.message, "danger");
+                }
+            })
+            .catch(() => {
+                btn.disabled = false;
+                btn.innerText = "Save Profile Changes";
+                showGlobalAlert("Network error while updating profile.", "danger");
+            });
+        }
+
+        // 3. Update Settings (Theme & Currency)
+        function handleUpdateSettings(e) {
+            e.preventDefault();
+
+            const currency = document.getElementById("settingCurrency").value;
+            const theme = document.querySelector('input[name="themeRadio"]:checked').value;
+            const btn = document.getElementById("saveSettingsBtn");
+
+            btn.disabled = true;
+            btn.innerText = "Saving...";
+
+            fetch("../api/update_settings.php", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ currency: currency, theme: theme })
+            })
+            .then(res => res.json())
+            .then(data => {
+                btn.disabled = false;
+                btn.innerText = "Save Preferences";
+
+                if (data.status === "success") {
+                    // Update client storage & apply theme immediately
+                    localStorage.setItem("spendwise_theme", theme);
+                    localStorage.setItem("spendwise_currency", currency);
+                    document.documentElement.setAttribute("data-bs-theme", theme);
+
+                    showGlobalAlert(data.data.message, "success");
+                } else {
+                    showGlobalAlert(data.message, "danger");
+                }
+            })
+            .catch(() => {
+                btn.disabled = false;
+                btn.innerText = "Save Preferences";
+                showGlobalAlert("Network error while updating preferences.", "danger");
+            });
+        }
+
+        // 4. Change Password
+        function handleChangePassword(e) {
+            e.preventDefault();
+
+            const oldPass = document.getElementById("oldPassword").value;
+            const newPass = document.getElementById("newPassword").value;
+            const confirmPass = document.getElementById("confirmPassword").value;
+            const alertBox = document.getElementById("passwordAlert");
+            const btn = document.getElementById("changePasswordBtn");
+
+            if (newPass !== confirmPass) {
+                showInlineAlert(alertBox, "New passwords do not match.", "danger");
+                return;
+            }
+
+            if (newPass.length < 6) {
+                showInlineAlert(alertBox, "New password must be at least 6 characters long.", "danger");
+                return;
+            }
+
+            btn.disabled = true;
+            btn.innerText = "Updating...";
+
+            fetch("../api/change_password.php", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                    old_password: oldPass,
+                    new_password: newPass,
+                    confirm_password: confirmPass
+                })
+            })
+            .then(res => res.json())
+            .then(data => {
+                btn.disabled = false;
+                btn.innerText = "Update Password";
+
+                if (data.status === "success") {
+                    showInlineAlert(alertBox, data.data.message, "success");
+                    document.getElementById("passwordForm").reset();
+                } else {
+                    showInlineAlert(alertBox, data.message, "danger");
+                }
+            })
+            .catch(() => {
+                btn.disabled = false;
+                btn.innerText = "Update Password";
+                showInlineAlert(alertBox, "Network error while updating password.", "danger");
+            });
+        }
+
+        // 5. Delete Account
+        function handleDeleteAccount(e) {
+            e.preventDefault();
+
+            const password = document.getElementById("deletePasswordInput").value;
+            const alertBox = document.getElementById("deleteAccountAlert");
+            const btn = document.getElementById("confirmDeleteBtn");
+
+            btn.disabled = true;
+            btn.innerText = "Deleting...";
+
+            fetch("../api/delete_account.php", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ password: password })
+            })
+            .then(res => res.json())
+            .then(data => {
+                btn.disabled = false;
+                btn.innerText = "Permanently Delete";
+
+                if (data.status === "success") {
+                    deleteModalInstance.hide();
+                    localStorage.clear();
+                    alert(data.data.message);
+                    window.location.href = "../login.html";
+                } else {
+                    showInlineAlert(alertBox, data.message, "danger");
+                }
+            })
+            .catch(() => {
+                btn.disabled = false;
+                btn.innerText = "Permanently Delete";
+                showInlineAlert(alertBox, "Failed to delete account. Please try again.", "danger");
+            });
+        }
+
+        // Utility alerts
+        function showGlobalAlert(message, type) {
+            const alertBox = document.getElementById("globalAlert");
+            alertBox.className = `alert alert-${type} alert-dismissible fade show`;
+            alertBox.innerHTML = `
+                ${escapeHtml(message)}
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            `;
+            alertBox.classList.remove("d-none");
+            window.scrollTo({ top: 0, behavior: "smooth" });
+        }
+
+        function showInlineAlert(container, message, type) {
+            container.className = `alert alert-${type}`;
+            container.innerText = message;
+            container.classList.remove("d-none");
+        }
+
+        function escapeHtml(text) {
+            if (!text) return "";
+            const div = document.createElement("div");
+            div.innerText = text;
+            return div.innerHTML;
+        }
+    </script>
+</body>
+</html>

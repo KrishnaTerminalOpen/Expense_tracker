@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SpendWise - Dashboard</title>
+    <!-- Bootstrap 5 CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="../assets/css/style.css">
+</head>
+<body>
+
+    <!-- Container where navbar.js injects the shared navigation bar -->
+    <div id="navbar-container"></div>
+
+    <div class="container my-4">
+        <!-- Dashboard Welcome Header -->
+        <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
+            <div>
+                <h2 class="fw-bold text-primary mb-1">Financial Overview</h2>
+                <p class="text-muted small mb-0">Track your daily expenditures and stay within your monthly budget goals.</p>
+            </div>
+            <div class="d-flex gap-2">
+                <a href="expenses.html" class="btn btn-primary btn-sm px-3 shadow-sm">+ Add Expense</a>
+                <a href="budgets.html" class="btn btn-outline-secondary btn-sm px-3 shadow-sm">🎯 Budgets</a>
+            </div>
+        </div>
+
+        <!-- Global Alert Message -->
+        <div id="globalAlert" class="alert d-none" role="alert"></div>
+
+        <!-- Metric Stat Cards Row -->
+        <div class="row g-3 mb-4">
+            <!-- 1. Today's Spending -->
+            <div class="col-12 col-sm-6 col-lg-3">
+                <div class="card shadow-sm border-0 h-100 border-start border-4 border-primary">
+                    <div class="card-body">
+                        <span class="text-muted small fw-semibold text-uppercase">Today</span>
+                        <h3 class="fw-bold text-dark mt-2 mb-0" id="todaySpent">₹0.00</h3>
+                        <div class="small text-muted mt-2">Spending recorded today</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 2. This Week's Spending -->
+            <div class="col-12 col-sm-6 col-lg-3">
+                <div class="card shadow-sm border-0 h-100 border-start border-4 border-info">
+                    <div class="card-body">
+                        <span class="text-muted small fw-semibold text-uppercase">This Week</span>
+                        <h3 class="fw-bold text-dark mt-2 mb-0" id="weekSpent">₹0.00</h3>
+                        <div class="small text-muted mt-2">Since Monday</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 3. This Month's Spending -->
+            <div class="col-12 col-sm-6 col-lg-3">
+                <div class="card shadow-sm border-0 h-100 border-start border-4 border-warning">
+                    <div class="card-body">
+                        <span class="text-muted small fw-semibold text-uppercase">This Month</span>
+                        <h3 class="fw-bold text-dark mt-2 mb-0" id="monthSpent">₹0.00</h3>
+                        <div class="small text-muted mt-2">Current billing cycle</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 4. Remaining Monthly Budget -->
+            <div class="col-12 col-sm-6 col-lg-3">
+                <div class="card shadow-sm border-0 h-100 border-start border-4 border-success" id="budgetCardBorder">
+                    <div class="card-body">
+                        <span class="text-muted small fw-semibold text-uppercase">Remaining Budget</span>
+                        <h3 class="fw-bold text-dark mt-2 mb-0" id="remainingBudget">₹0.00</h3>
+                        <div class="small mt-2" id="budgetStatusText">Loading budget status...</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Recent Expenses Section -->
+        <div class="card shadow-sm border-0">
+            <div class="card-header bg-white py-3 border-bottom d-flex justify-content-between align-items-center">
+                <h5 class="card-title fw-bold mb-0 text-dark">🕒 Recent 5 Expenses</h5>
+                <a href="history.html" class="small fw-bold text-decoration-none text-primary">View Full History &rarr;</a>
+            </div>
+            <div class="card-body p-0">
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle mb-0">
+                        <thead class="table-light">
+                            <tr>
+                                <th>Date</th>
+                                <th>Category</th>
+                                <th>Payment Method</th>
+                                <th>Description</th>
+                                <th class="text-end">Amount</th>
+                            </tr>
+                        </thead>
+                        <tbody id="recentExpensesTableBody">
+                            <tr>
+                                <td colspan="5" class="text-center text-muted py-4">Loading recent expenses...</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Bootstrap Bundle JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    <!-- Shared Navbar & Session Guard Script -->
+    <script src="../assets/js/navbar.js"></script>
+
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            loadDashboardData();
+        });
+
+        // Fetch dashboard statistics
+        function loadDashboardData() {
+            fetch("../api/dashboard.php")
+                .then(res => res.json())
+                .then(response => {
+                    if (response.status !== "success") {
+                        showGlobalAlert(response.message || "Failed to load dashboard data.", "danger");
+                        return;
+                    }
+
+                    const data = response.data;
+
+                    // 1. Update Stat Cards
+                    document.getElementById("todaySpent").innerText = `₹${data.today_spending.toFixed(2)}`;
+                    document.getElementById("weekSpent").innerText = `₹${data.week_spending.toFixed(2)}`;
+                    document.getElementById("monthSpent").innerText = `₹${data.month_spending.toFixed(2)}`;
+
+                    // 2. Update Budget Remaining Card
+                    const budgetBorder = document.getElementById("budgetCardBorder");
+                    const remainingEl = document.getElementById("remainingBudget");
+                    const statusText = document.getElementById("budgetStatusText");
+
+                    if (data.has_budget) {
+                        const remaining = data.remaining_budget;
+                        remainingEl.innerText = `₹${Math.abs(remaining).toFixed(2)}`;
+
+                        if (remaining < 0) {
+                            budgetBorder.className = "card shadow-sm border-0 h-100 border-start border-4 border-danger";
+                            remainingEl.className = "fw-bold text-danger mt-2 mb-0";
+                            statusText.className = "small text-danger fw-semibold mt-2";
+                            statusText.innerText = `Exceeded by ₹${Math.abs(remaining).toFixed(2)} (${data.budget_percent_spent}%)`;
+                        } else {
+                            budgetBorder.className = "card shadow-sm border-0 h-100 border-start border-4 border-success";
+                            remainingEl.className = "fw-bold text-success mt-2 mb-0";
+                            statusText.className = "small text-muted mt-2";
+                            statusText.innerText = `${data.budget_percent_spent}% of ₹${data.monthly_budget.toFixed(2)} used`;
+                        }
+                    } else {
+                        remainingEl.innerText = "No Budget";
+                        statusText.className = "small text-muted mt-2";
+                        statusText.innerHTML = `<a href="budgets.html" class="text-decoration-none">Set a monthly budget &rarr;</a>`;
+                    }
+
+                    // 3. Populate Recent 5 Expenses Table
+                    const tbody = document.getElementById("recentExpensesTableBody");
+                    const list = data.recent_expenses;
+
+                    if (list.length === 0) {
+                        tbody.innerHTML = `<tr><td colspan="5" class="text-center text-muted py-4">No expenses recorded yet. <a href="expenses.html">Add your first expense</a>.</td></tr>`;
+                        return;
+                    }
+
+                    let rows = "";
+                    list.forEach(item => {
+                        const dateFormatted = new Date(item.expense_date).toLocaleDateString('en-IN', {
+                            day: '2-digit', month: 'short', year: 'numeric'
+                        });
+
+                        rows += `
+                            <tr>
+                                <td class="small fw-semibold text-secondary">${dateFormatted}</td>
+                                <td><span class="badge bg-light text-dark border">${escapeHtml(item.category_name)}</span></td>
+                                <td class="small text-muted">${escapeHtml(item.payment_method_name)}</td>
+                                <td class="small">${escapeHtml(item.description || "-")}</td>
+                                <td class="text-end fw-bold text-danger">₹${item.amount.toFixed(2)}</td>
+                            </tr>
+                        `;
+                    });
+                    tbody.innerHTML = rows;
+                })
+                .catch(err => {
+                    console.error("Dashboard error:", err);
+                    showGlobalAlert("Failed to load dashboard metrics.", "danger");
+                });
+        }
+
+        function showGlobalAlert(message, type) {
+            const alertBox = document.getElementById("globalAlert");
+            alertBox.className = `alert alert-${type} alert-dismissible fade show`;
+            alertBox.innerHTML = `
+                ${escapeHtml(message)}
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            `;
+            alertBox.classList.remove("d-none");
+        }
+
+        function escapeHtml(text) {
+            if (!text) return "";
+            const div = document.createElement("div");
+            div.innerText = text;
+            return div.innerHTML;
+        }
+    </script>
+</body>
+</html>

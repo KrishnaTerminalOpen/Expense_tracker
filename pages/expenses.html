@@ -1,0 +1,471 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SpendWise - Expenses</title>
+    <!-- Bootstrap 5 CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="../assets/css/style.css">
+</head>
+<body>
+
+    <!-- Container where navbar.js injects the shared navigation bar -->
+    <div id="navbar-container"></div>
+
+    <div class="container my-4">
+        <!-- Header -->
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <div>
+                <h2 class="fw-bold text-primary mb-1">Expense Tracking</h2>
+                <p class="text-muted small mb-0">Record and manage your daily spending effortlessly.</p>
+            </div>
+            <div>
+                <span class="badge bg-primary px-3 py-2 fs-6" id="totalSpentBadge">Total: ₹0.00</span>
+            </div>
+        </div>
+
+        <!-- Global Alert Message -->
+        <div id="globalAlert" class="alert d-none" role="alert"></div>
+
+        <!-- Budget Warning Container (Populated when budget threshold is crossed) -->
+        <div id="budgetWarningBox" class="alert alert-warning alert-dismissible fade show d-none" role="alert">
+            <h6 class="alert-heading fw-bold mb-1">⚠️ Budget Notification:</h6>
+            <div id="budgetWarningMessages"></div>
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+
+        <div class="row g-4">
+            <!-- Left Column: Add Expense Form -->
+            <div class="col-12 col-lg-4">
+                <div class="card shadow-sm border-0">
+                    <div class="card-header bg-white py-3 border-bottom">
+                        <h5 class="card-title fw-bold mb-0 text-dark">➕ Add New Expense</h5>
+                    </div>
+                    <div class="card-body">
+                        <form id="addExpenseForm">
+                            <!-- Amount -->
+                            <div class="mb-3">
+                                <label for="amount" class="form-label small fw-semibold">Amount (₹) *</label>
+                                <input type="number" step="0.01" min="0.01" class="form-control" id="amount" placeholder="0.00" required>
+                            </div>
+
+                            <!-- Category Dropdown -->
+                            <div class="mb-3">
+                                <label for="categoryId" class="form-label small fw-semibold">Category *</label>
+                                <select class="form-select" id="categoryId" required>
+                                    <option value="" selected disabled>Select Category</option>
+                                </select>
+                            </div>
+
+                            <!-- Payment Method Dropdown -->
+                            <div class="mb-3">
+                                <label for="paymentMethodId" class="form-label small fw-semibold">Payment Method *</label>
+                                <select class="form-select" id="paymentMethodId" required>
+                                    <option value="" selected disabled>Select Payment Method</option>
+                                </select>
+                            </div>
+
+                            <!-- Date -->
+                            <div class="mb-3">
+                                <label for="expenseDate" class="form-label small fw-semibold">Date *</label>
+                                <input type="date" class="form-control" id="expenseDate" required>
+                            </div>
+
+                            <!-- Description -->
+                            <div class="mb-3">
+                                <label for="description" class="form-label small fw-semibold">Description (Optional)</label>
+                                <textarea class="form-control" id="description" rows="2" placeholder="e.g. Lunch at bistro, Grocery run" maxlength="255"></textarea>
+                            </div>
+
+                            <button type="submit" id="addExpenseBtn" class="btn btn-primary w-100 py-2 fw-semibold">
+                                Save Expense
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Right Column: Recent Expenses Table -->
+            <div class="col-12 col-lg-8">
+                <div class="card shadow-sm border-0">
+                    <div class="card-header bg-white py-3 border-bottom d-flex justify-content-between align-items-center">
+                        <h5 class="card-title fw-bold mb-0 text-dark">📋 Recent Expenses</h5>
+                        <span id="expenseCountBadge" class="badge bg-secondary">0 Records</span>
+                    </div>
+                    <div class="card-body p-0">
+                        <div class="table-responsive">
+                            <table class="table table-hover align-middle mb-0">
+                                <thead class="table-light">
+                                    <tr>
+                                        <th>Date</th>
+                                        <th>Category</th>
+                                        <th>Method</th>
+                                        <th>Description</th>
+                                        <th class="text-end">Amount</th>
+                                        <th class="text-end">Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="expensesTableBody">
+                                    <tr>
+                                        <td colspan="6" class="text-center text-muted py-4">Loading expenses...</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Edit Expense Modal -->
+    <div class="modal fade" id="editExpenseModal" tabindex="-1" aria-labelledby="editExpenseModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title fw-bold" id="editExpenseModalLabel">Edit Expense</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <div id="editExpenseAlert" class="alert d-none" role="alert"></div>
+                    <form id="editExpenseForm">
+                        <input type="hidden" id="editExpenseId">
+
+                        <div class="mb-3">
+                            <label for="editAmount" class="form-label small fw-semibold">Amount (₹) *</label>
+                            <input type="number" step="0.01" min="0.01" class="form-control" id="editAmount" required>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="editCategoryId" class="form-label small fw-semibold">Category *</label>
+                            <select class="form-select" id="editCategoryId" required></select>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="editPaymentMethodId" class="form-label small fw-semibold">Payment Method *</label>
+                            <select class="form-select" id="editPaymentMethodId" required></select>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="editExpenseDate" class="form-label small fw-semibold">Date *</label>
+                            <input type="date" class="form-control" id="editExpenseDate" required>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="editDescription" class="form-label small fw-semibold">Description</label>
+                            <textarea class="form-control" id="editDescription" rows="2" maxlength="255"></textarea>
+                        </div>
+
+                        <div class="text-end">
+                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                            <button type="submit" class="btn btn-primary" id="saveEditExpenseBtn">Save Changes</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Bootstrap Bundle JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    <!-- Shared Navbar & Session Guard Script -->
+    <script src="../assets/js/navbar.js"></script>
+
+    <script>
+        let editExpenseModalInstance = null;
+        let categoriesList = [];
+        let paymentMethodsList = [];
+
+        document.addEventListener("DOMContentLoaded", function () {
+            editExpenseModalInstance = new bootstrap.Modal(document.getElementById("editExpenseModal"));
+
+            // Default date to today
+            document.getElementById("expenseDate").value = new Date().toISOString().split("T")[0];
+
+            // Initial loads
+            loadDropdowns();
+            loadExpenses();
+
+            // Event Listeners
+            document.getElementById("addExpenseForm").addEventListener("submit", handleAddExpense);
+            document.getElementById("editExpenseForm").addEventListener("submit", handleSaveEditExpense);
+        });
+
+        // Load Categories & Payment Methods into dropdowns
+        function loadDropdowns() {
+            // Load categories
+            fetch("../api/get_categories.php")
+                .then(res => res.json())
+                .then(res => {
+                    if (res.status === "success") {
+                        categoriesList = res.data;
+                        populateSelect("categoryId", categoriesList);
+                        populateSelect("editCategoryId", categoriesList);
+                    }
+                });
+
+            // Load payment methods
+            fetch("../api/get_payment_methods.php")
+                .then(res => res.json())
+                .then(res => {
+                    if (res.status === "success") {
+                        paymentMethodsList = res.data;
+                        populateSelect("paymentMethodId", paymentMethodsList);
+                        populateSelect("editPaymentMethodId", paymentMethodsList);
+                    }
+                });
+        }
+
+        function populateSelect(selectId, items) {
+            const select = document.getElementById(selectId);
+            const isEdit = selectId.startsWith("edit");
+            let options = isEdit ? "" : `<option value="" selected disabled>Select option</option>`;
+            items.forEach(item => {
+                options += `<option value="${item.id}">${escapeHtml(item.name)}</option>`;
+            });
+            select.innerHTML = options;
+        }
+
+        // Fetch and render expenses
+        function loadExpenses() {
+            fetch("../api/get_expenses.php")
+                .then(res => res.json())
+                .then(response => {
+                    const tbody = document.getElementById("expensesTableBody");
+                    if (response.status !== "success") {
+                        tbody.innerHTML = `<tr><td colspan="6" class="text-danger text-center">${escapeHtml(response.message)}</td></tr>`;
+                        return;
+                    }
+
+                    const expenses = response.data.expenses;
+                    document.getElementById("expenseCountBadge").innerText = `${response.data.total_count} Records`;
+                    document.getElementById("totalSpentBadge").innerText = `Total: ₹${parseFloat(response.data.total_sum).toFixed(2)}`;
+
+                    if (expenses.length === 0) {
+                        tbody.innerHTML = `<tr><td colspan="6" class="text-muted text-center py-4">No expenses recorded yet.</td></tr>`;
+                        return;
+                    }
+
+                    let rows = "";
+                    expenses.forEach(item => {
+                        const dateFormatted = new Date(item.expense_date).toLocaleDateString('en-IN', {
+                            day: '2-digit', month: 'short', year: 'numeric'
+                        });
+
+                        rows += `
+                            <tr>
+                                <td class="small fw-semibold text-secondary">${dateFormatted}</td>
+                                <td><span class="badge bg-light text-dark border">${escapeHtml(item.category_name)}</span></td>
+                                <td class="small text-muted">${escapeHtml(item.payment_method_name)}</td>
+                                <td class="small">${escapeHtml(item.description || "-")}</td>
+                                <td class="text-end fw-bold text-danger">₹${parseFloat(item.amount).toFixed(2)}</td>
+                                <td class="text-end">
+                                    <button class="btn btn-sm btn-outline-primary me-1" onclick="openEditModal(${item.id})">
+                                        Edit
+                                    </button>
+                                    <button class="btn btn-sm btn-outline-danger" onclick="deleteExpense(${item.id})">
+                                        Delete
+                                    </button>
+                                </td>
+                            </tr>
+                        `;
+                    });
+                    tbody.innerHTML = rows;
+                })
+                .catch(err => {
+                    console.error("Fetch expenses error:", err);
+                    showGlobalAlert("Failed to load expenses.", "danger");
+                });
+        }
+
+        // Handle Add Expense
+        function handleAddExpense(e) {
+            e.preventDefault();
+
+            const amount = document.getElementById("amount").value;
+            const categoryId = document.getElementById("categoryId").value;
+            const paymentMethodId = document.getElementById("paymentMethodId").value;
+            const expenseDate = document.getElementById("expenseDate").value;
+            const description = document.getElementById("description").value.trim();
+            const btn = document.getElementById("addExpenseBtn");
+
+            btn.disabled = true;
+            btn.innerText = "Saving...";
+
+            fetch("../api/add_expense.php", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                    amount: parseFloat(amount),
+                    category_id: parseInt(categoryId),
+                    payment_method_id: parseInt(paymentMethodId),
+                    expense_date: expenseDate,
+                    description: description
+                })
+            })
+            .then(res => res.json())
+            .then(data => {
+                btn.disabled = false;
+                btn.innerText = "Save Expense";
+
+                if (data.status === "success") {
+                    showGlobalAlert(data.data.message, "success");
+                    document.getElementById("addExpenseForm").reset();
+                    document.getElementById("expenseDate").value = new Date().toISOString().split("T")[0];
+
+                    // Check budget alerts
+                    if (data.data.budget_status && data.data.budget_status.has_alert) {
+                        showBudgetAlerts(data.data.budget_status.alerts);
+                    }
+
+                    loadExpenses();
+                } else {
+                    showGlobalAlert(data.message, "danger");
+                }
+            })
+            .catch(() => {
+                btn.disabled = false;
+                btn.innerText = "Save Expense";
+                showGlobalAlert("Failed to save expense due to a network error.", "danger");
+            });
+        }
+
+        // Open Edit Modal
+        function openEditModal(expenseId) {
+            fetch("../api/get_expenses.php")
+                .then(res => res.json())
+                .then(res => {
+                    const item = res.data.expenses.find(x => x.id == expenseId);
+                    if (!item) return;
+
+                    document.getElementById("editExpenseId").value = item.id;
+                    document.getElementById("editAmount").value = item.amount;
+                    document.getElementById("editCategoryId").value = item.category_id;
+                    document.getElementById("editPaymentMethodId").value = item.payment_method_id;
+                    document.getElementById("editExpenseDate").value = item.expense_date;
+                    document.getElementById("editDescription").value = item.description || "";
+
+                    document.getElementById("editExpenseAlert").classList.add("d-none");
+                    editExpenseModalInstance.show();
+                });
+        }
+
+        // Handle Save Edited Expense
+        function handleSaveEditExpense(e) {
+            e.preventDefault();
+
+            const id = document.getElementById("editExpenseId").value;
+            const amount = document.getElementById("editAmount").value;
+            const categoryId = document.getElementById("editCategoryId").value;
+            const paymentMethodId = document.getElementById("editPaymentMethodId").value;
+            const expenseDate = document.getElementById("editExpenseDate").value;
+            const description = document.getElementById("editDescription").value.trim();
+            const btn = document.getElementById("saveEditExpenseBtn");
+
+            btn.disabled = true;
+            btn.innerText = "Saving...";
+
+            fetch("../api/update_expense.php", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                    id: parseInt(id),
+                    amount: parseFloat(amount),
+                    category_id: parseInt(categoryId),
+                    payment_method_id: parseInt(paymentMethodId),
+                    expense_date: expenseDate,
+                    description: description
+                })
+            })
+            .then(res => res.json())
+            .then(data => {
+                btn.disabled = false;
+                btn.innerText = "Save Changes";
+
+                if (data.status === "success") {
+                    editExpenseModalInstance.hide();
+                    showGlobalAlert(data.data.message, "success");
+
+                    if (data.data.budget_status && data.data.budget_status.has_alert) {
+                        showBudgetAlerts(data.data.budget_status.alerts);
+                    }
+
+                    loadExpenses();
+                } else {
+                    const alert = document.getElementById("editExpenseAlert");
+                    alert.className = "alert alert-danger";
+                    alert.innerText = data.message;
+                    alert.classList.remove("d-none");
+                }
+            })
+            .catch(() => {
+                btn.disabled = false;
+                btn.innerText = "Save Changes";
+                const alert = document.getElementById("editExpenseAlert");
+                alert.className = "alert alert-danger";
+                alert.innerText = "Network error while saving changes.";
+                alert.classList.remove("d-none");
+            });
+        }
+
+        // Handle Delete Expense
+        function deleteExpense(expenseId) {
+            if (!confirm("Are you sure you want to delete this expense record?")) {
+                return;
+            }
+
+            fetch("../api/delete_expense.php", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ id: expenseId })
+            })
+            .then(res => res.json())
+            .then(data => {
+                if (data.status === "success") {
+                    showGlobalAlert(data.data.message, "success");
+                    loadExpenses();
+                } else {
+                    showGlobalAlert(data.message, "danger");
+                }
+            })
+            .catch(() => {
+                showGlobalAlert("Failed to delete expense due to a network error.", "danger");
+            });
+        }
+
+        // Show Budget Alerts if threshold reached
+        function showBudgetAlerts(messages) {
+            const box = document.getElementById("budgetWarningBox");
+            const container = document.getElementById("budgetWarningMessages");
+            let html = "<ul class='mb-0 ps-3'>";
+            messages.forEach(msg => {
+                html += `<li>${escapeHtml(msg)}</li>`;
+            });
+            html += "</ul>";
+            container.innerHTML = html;
+            box.classList.remove("d-none");
+            window.scrollTo({ top: 0, behavior: "smooth" });
+        }
+
+        // Utilities
+        function showGlobalAlert(message, type) {
+            const alertBox = document.getElementById("globalAlert");
+            alertBox.className = `alert alert-${type} alert-dismissible fade show`;
+            alertBox.innerHTML = `
+                ${escapeHtml(message)}
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            `;
+            alertBox.classList.remove("d-none");
+            window.scrollTo({ top: 0, behavior: "smooth" });
+        }
+
+        function escapeHtml(text) {
+            if (!text) return "";
+            const div = document.createElement("div");
+            div.innerText = text;
+            return div.innerHTML;
+        }
+    </script>
+</body>
+</html>

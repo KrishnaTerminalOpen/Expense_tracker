@@ -1,0 +1,437 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SpendWise - Budgets</title>
+    <!-- Bootstrap 5 CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="../assets/css/style.css">
+</head>
+<body>
+
+    <!-- Container where navbar.js injects the shared navigation bar -->
+    <div id="navbar-container"></div>
+
+    <div class="container my-4">
+        <!-- Header -->
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <div>
+                <h2 class="fw-bold text-primary mb-1">Budget Management</h2>
+                <p class="text-muted small mb-0">Set spending limits and monitor your progress with real-time alerts.</p>
+            </div>
+        </div>
+
+        <!-- Global Alert Message -->
+        <div id="globalAlert" class="alert d-none" role="alert"></div>
+
+        <div class="row g-4">
+            <!-- Left Column: Add Budget Form -->
+            <div class="col-12 col-lg-4">
+                <div class="card shadow-sm border-0">
+                    <div class="card-header bg-white py-3 border-bottom">
+                        <h5 class="card-title fw-bold mb-0 text-dark">🎯 Set Budget</h5>
+                    </div>
+                    <div class="card-body">
+                        <form id="addBudgetForm">
+                            <!-- Budget Type / Category -->
+                            <div class="mb-3">
+                                <label for="budgetCategory" class="form-label small fw-semibold">Budget Scope *</label>
+                                <select class="form-select" id="budgetCategory" required>
+                                    <option value="overall" selected>🌐 Overall Monthly Budget</option>
+                                    <!-- Dynamic categories loaded here -->
+                                </select>
+                                <div class="form-text">Choose Overall or assign to a specific category.</div>
+                            </div>
+
+                            <!-- Month and Year -->
+                            <div class="row g-2 mb-3">
+                                <div class="col-7">
+                                    <label for="budgetMonth" class="form-label small fw-semibold">Month *</label>
+                                    <select class="form-select" id="budgetMonth" required>
+                                        <option value="1">January</option>
+                                        <option value="2">February</option>
+                                        <option value="3">March</option>
+                                        <option value="4">April</option>
+                                        <option value="5">May</option>
+                                        <option value="6">June</option>
+                                        <option value="7">July</option>
+                                        <option value="8">August</option>
+                                        <option value="9">September</option>
+                                        <option value="10">October</option>
+                                        <option value="11">November</option>
+                                        <option value="12">December</option>
+                                    </select>
+                                </div>
+                                <div class="col-5">
+                                    <label for="budgetYear" class="form-label small fw-semibold">Year *</label>
+                                    <input type="number" class="form-control" id="budgetYear" min="2020" max="2099" required>
+                                </div>
+                            </div>
+
+                            <!-- Budget Amount -->
+                            <div class="mb-3">
+                                <label for="budgetAmount" class="form-label small fw-semibold">Limit Amount (₹) *</label>
+                                <input type="number" step="0.01" min="1" class="form-control" id="budgetAmount" placeholder="e.g. 15000" required>
+                            </div>
+
+                            <!-- Alert Percent Threshold -->
+                            <div class="mb-4">
+                                <label for="alertPercent" class="form-label small fw-semibold">Alert Threshold (%) *</label>
+                                <input type="number" min="1" max="100" class="form-control" id="alertPercent" value="80" required>
+                                <div class="form-text">Notify when spending crosses this percentage (default 80%).</div>
+                            </div>
+
+                            <button type="submit" id="addBudgetBtn" class="btn btn-primary w-100 py-2 fw-semibold">
+                                Save Budget
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Right Column: Budgets List with Progress Bars -->
+            <div class="col-12 col-lg-8">
+                <div class="card shadow-sm border-0">
+                    <div class="card-header bg-white py-3 border-bottom d-flex justify-content-between align-items-center">
+                        <h5 class="card-title fw-bold mb-0 text-dark">📊 Active Budgets</h5>
+                        <span id="budgetCountBadge" class="badge bg-secondary">0 Budgets</span>
+                    </div>
+                    <div class="card-body p-3">
+                        <div id="budgetsListContainer">
+                            <p class="text-center text-muted py-4">Loading budgets...</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Edit Budget Modal -->
+    <div class="modal fade" id="editBudgetModal" tabindex="-1" aria-labelledby="editBudgetModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title fw-bold" id="editBudgetModalLabel">Edit Budget</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <div id="editBudgetAlert" class="alert d-none" role="alert"></div>
+                    <form id="editBudgetForm">
+                        <input type="hidden" id="editBudgetId">
+
+                        <div class="mb-3">
+                            <label class="form-label small text-muted">Budget Name</label>
+                            <input type="text" class="form-control bg-light" id="editBudgetNameDisplay" readonly>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="editBudgetAmount" class="form-label small fw-semibold">Budget Limit (₹) *</label>
+                            <input type="number" step="0.01" min="1" class="form-control" id="editBudgetAmount" required>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="editAlertPercent" class="form-label small fw-semibold">Alert Threshold (%) *</label>
+                            <input type="number" min="1" max="100" class="form-control" id="editAlertPercent" required>
+                        </div>
+
+                        <div class="text-end">
+                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                            <button type="submit" class="btn btn-primary" id="saveEditBudgetBtn">Save Changes</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Bootstrap Bundle JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    <!-- Shared Navbar & Session Guard Script -->
+    <script src="../assets/js/navbar.js"></script>
+
+    <script>
+        let editBudgetModalInstance = null;
+        let monthNames = ["", "January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
+
+        document.addEventListener("DOMContentLoaded", function () {
+            editBudgetModalInstance = new bootstrap.Modal(document.getElementById("editBudgetModal"));
+
+            // Set current month and year in add form
+            const today = new Date();
+            document.getElementById("budgetMonth").value = today.getMonth() + 1;
+            document.getElementById("budgetYear").value = today.getFullYear();
+
+            // Load categories into dropdown
+            loadCategoriesDropdown();
+
+            // Load existing budgets
+            loadBudgets();
+
+            // Submit handlers
+            document.getElementById("addBudgetForm").addEventListener("submit", handleAddBudget);
+            document.getElementById("editBudgetForm").addEventListener("submit", handleSaveEditBudget);
+        });
+
+        // Load categories into select
+        function loadCategoriesDropdown() {
+            fetch("../api/get_categories.php")
+                .then(res => res.json())
+                .then(res => {
+                    if (res.status === "success") {
+                        const select = document.getElementById("budgetCategory");
+                        let options = `<option value="overall" selected>🌐 Overall Monthly Budget</option>`;
+                        res.data.forEach(cat => {
+                            options += `<option value="${cat.id}">📁 ${escapeHtml(cat.name)}</option>`;
+                        });
+                        select.innerHTML = options;
+                    }
+                });
+        }
+
+        // Fetch and display budgets with progress bars
+        function loadBudgets() {
+            fetch("../api/get_budgets.php")
+                .then(res => res.json())
+                .then(response => {
+                    const container = document.getElementById("budgetsListContainer");
+                    if (response.status !== "success") {
+                        container.innerHTML = `<div class="alert alert-danger">${escapeHtml(response.message)}</div>`;
+                        return;
+                    }
+
+                    const budgets = response.data;
+                    document.getElementById("budgetCountBadge").innerText = `${budgets.length} Budgets`;
+
+                    if (budgets.length === 0) {
+                        container.innerHTML = `
+                            <div class="text-center text-muted py-5">
+                                <h5>No budgets set yet.</h5>
+                                <p class="small">Use the form on the left to set your first budget.</p>
+                            </div>
+                        `;
+                        return;
+                    }
+
+                    let html = "";
+                    budgets.forEach(b => {
+                        const monthName = monthNames[b.month] || `Month ${b.month}`;
+                        const isOver = b.spent_amount > b.amount;
+                        const progressWidth = Math.min(b.percent_spent, 100);
+
+                        // Badge for overall vs category
+                        const badgeHtml = b.is_overall 
+                            ? `<span class="badge bg-primary">Overall Budget</span>` 
+                            : `<span class="badge bg-secondary">Category Budget</span>`;
+
+                        html += `
+                            <div class="card mb-3 border shadow-none bg-light">
+                                <div class="card-body">
+                                    <div class="d-flex justify-content-between align-items-start mb-2">
+                                        <div>
+                                            <h6 class="fw-bold mb-1 text-dark">
+                                                ${escapeHtml(b.category_name)}
+                                            </h6>
+                                            <div class="small text-muted">
+                                                ${badgeHtml} <span class="ms-1">📅 ${monthName} ${b.year}</span>
+                                            </div>
+                                        </div>
+                                        <div class="text-end">
+                                            <button class="btn btn-sm btn-outline-primary me-1" onclick="openEditBudgetModal(${b.id}, '${escapeHtml(b.category_name)}', ${b.amount}, ${b.alert_percent})">
+                                                Edit
+                                            </button>
+                                            <button class="btn btn-sm btn-outline-danger" onclick="deleteBudget(${b.id})">
+                                                Delete
+                                            </button>
+                                        </div>
+                                    </div>
+
+                                    <!-- Amounts details -->
+                                    <div class="d-flex justify-content-between small fw-semibold my-2">
+                                        <span>Spent: <span class="text-${b.status_color}">₹${b.spent_amount.toFixed(2)}</span></span>
+                                        <span>Limit: ₹${b.amount.toFixed(2)}</span>
+                                        <span class="${isOver ? 'text-danger' : 'text-success'}">
+                                            ${isOver ? 'Over by: ₹' + Math.abs(b.remaining).toFixed(2) : 'Remaining: ₹' + b.remaining.toFixed(2)}
+                                        </span>
+                                    </div>
+
+                                    <!-- Bootstrap Progress Bar -->
+                                    <div class="progress" style="height: 14px;">
+                                        <div class="progress-bar bg-${b.status_color} progress-bar-striped ${isOver ? 'progress-bar-animated' : ''}" 
+                                             role="progressbar" 
+                                             style="width: ${progressWidth}%;" 
+                                             aria-valuenow="${b.percent_spent}" 
+                                             aria-valuemin="0" 
+                                             aria-valuemax="100">
+                                            ${b.percent_spent}%
+                                        </div>
+                                    </div>
+
+                                    <!-- Alert threshold indicator -->
+                                    <div class="d-flex justify-content-between small text-muted mt-1" style="font-size: 0.78rem;">
+                                        <span>Alert set at ${b.alert_percent}%</span>
+                                        <span>${b.percent_spent}% spent</span>
+                                    </div>
+                                </div>
+                            </div>
+                        `;
+                    });
+
+                    container.innerHTML = html;
+                })
+                .catch(err => {
+                    console.error("Budget load error:", err);
+                    showGlobalAlert("Failed to load budgets.", "danger");
+                });
+        }
+
+        // Add Budget
+        function handleAddBudget(e) {
+            e.preventDefault();
+
+            const categoryVal = document.getElementById("budgetCategory").value;
+            const categoryId = (categoryVal === "overall") ? null : parseInt(categoryVal);
+            const month = parseInt(document.getElementById("budgetMonth").value);
+            const year = parseInt(document.getElementById("budgetYear").value);
+            const amount = parseFloat(document.getElementById("budgetAmount").value);
+            const alertPercent = parseInt(document.getElementById("alertPercent").value);
+            const btn = document.getElementById("addBudgetBtn");
+
+            btn.disabled = true;
+            btn.innerText = "Saving...";
+
+            fetch("../api/add_budget.php", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                    category_id: categoryId,
+                    month: month,
+                    year: year,
+                    amount: amount,
+                    alert_percent: alertPercent
+                })
+            })
+            .then(res => res.json())
+            .then(data => {
+                btn.disabled = false;
+                btn.innerText = "Save Budget";
+
+                if (data.status === "success") {
+                    showGlobalAlert(data.data.message, "success");
+                    document.getElementById("budgetAmount").value = "";
+                    loadBudgets();
+                } else {
+                    showGlobalAlert(data.message, "danger");
+                }
+            })
+            .catch(() => {
+                btn.disabled = false;
+                btn.innerText = "Save Budget";
+                showGlobalAlert("Failed to save budget due to network error.", "danger");
+            });
+        }
+
+        // Open Edit Modal
+        function openEditBudgetModal(id, name, amount, alertPercent) {
+            document.getElementById("editBudgetId").value = id;
+            document.getElementById("editBudgetNameDisplay").value = name;
+            document.getElementById("editBudgetAmount").value = amount;
+            document.getElementById("editAlertPercent").value = alertPercent;
+
+            document.getElementById("editBudgetAlert").classList.add("d-none");
+            editBudgetModalInstance.show();
+        }
+
+        // Save Edited Budget
+        function handleSaveEditBudget(e) {
+            e.preventDefault();
+
+            const id = parseInt(document.getElementById("editBudgetId").value);
+            const amount = parseFloat(document.getElementById("editBudgetAmount").value);
+            const alertPercent = parseInt(document.getElementById("editAlertPercent").value);
+            const btn = document.getElementById("saveEditBudgetBtn");
+
+            btn.disabled = true;
+            btn.innerText = "Saving...";
+
+            fetch("../api/update_budget.php", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                    id: id,
+                    amount: amount,
+                    alert_percent: alertPercent
+                })
+            })
+            .then(res => res.json())
+            .then(data => {
+                btn.disabled = false;
+                btn.innerText = "Save Changes";
+
+                if (data.status === "success") {
+                    editBudgetModalInstance.hide();
+                    showGlobalAlert(data.data.message, "success");
+                    loadBudgets();
+                } else {
+                    const alert = document.getElementById("editBudgetAlert");
+                    alert.className = "alert alert-danger";
+                    alert.innerText = data.message;
+                    alert.classList.remove("d-none");
+                }
+            })
+            .catch(() => {
+                btn.disabled = false;
+                btn.innerText = "Save Changes";
+                const alert = document.getElementById("editBudgetAlert");
+                alert.className = "alert alert-danger";
+                alert.innerText = "Failed to update budget.";
+                alert.classList.remove("d-none");
+            });
+        }
+
+        // Delete Budget
+        function deleteBudget(id) {
+            if (!confirm("Are you sure you want to delete this budget limit?")) {
+                return;
+            }
+
+            fetch("../api/delete_budget.php", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ id: id })
+            })
+            .then(res => res.json())
+            .then(data => {
+                if (data.status === "success") {
+                    showGlobalAlert(data.data.message, "success");
+                    loadBudgets();
+                } else {
+                    showGlobalAlert(data.message, "danger");
+                }
+            })
+            .catch(() => {
+                showGlobalAlert("Failed to delete budget due to network error.", "danger");
+            });
+        }
+
+        // Global Alert Helper
+        function showGlobalAlert(message, type) {
+            const alertBox = document.getElementById("globalAlert");
+            alertBox.className = `alert alert-${type} alert-dismissible fade show`;
+            alertBox.innerHTML = `
+                ${escapeHtml(message)}
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            `;
+            alertBox.classList.remove("d-none");
+            window.scrollTo({ top: 0, behavior: "smooth" });
+        }
+
+        function escapeHtml(text) {
+            if (!text) return "";
+            const div = document.createElement("div");
+            div.innerText = text;
+            return div.innerHTML;
+        }
+    </script>
+</body>
+</html>

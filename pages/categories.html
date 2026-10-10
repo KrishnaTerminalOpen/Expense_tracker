@@ -1,0 +1,558 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SpendWise - Categories &amp; Payment Methods</title>
+    <!-- Bootstrap 5 CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="../assets/css/style.css">
+</head>
+<body>
+
+    <!-- Container where navbar.js injects the shared navigation bar -->
+    <div id="navbar-container"></div>
+
+    <div class="container my-4">
+        <!-- Page Title & Header -->
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <div>
+                <h2 class="fw-bold text-primary mb-1">Categories &amp; Payment Methods</h2>
+                <p class="text-muted small mb-0">
+                    Manage categories and payment methods for tracking your income and expenses.
+                </p>
+            </div>
+        </div>
+
+        <!-- Global Alert Message -->
+        <div id="globalAlert" class="alert d-none" role="alert"></div>
+
+        <div class="row g-4">
+            <!-- SECTION 1: CATEGORIES -->
+            <div class="col-12 col-lg-6">
+                <div class="card shadow-sm border-0 h-100">
+                    <div class="card-header bg-white py-3 border-bottom d-flex justify-content-between align-items-center">
+                        <h5 class="card-title fw-bold mb-0 text-dark">
+                            📂 Categories
+                        </h5>
+                        <span id="catBadgeCount" class="badge bg-primary">0 Total</span>
+                    </div>
+                    <div class="card-body">
+                        <!-- Add Category Form -->
+                        <form id="addCategoryForm" class="mb-4">
+                            <label for="newCategoryName" class="form-label small fw-semibold text-muted">
+                                Add Custom Category
+                            </label>
+                            <div class="input-group">
+                                <input type="text" class="form-control" id="newCategoryName" placeholder="e.g., Subscriptions, Pet Care" required maxlength="100">
+                                <button type="submit" class="btn btn-primary" id="addCategoryBtn">
+                                    + Add
+                                </button>
+                            </div>
+                        </form>
+
+                        <!-- Categories Table -->
+                        <div class="table-responsive">
+                            <table class="table table-hover align-middle mb-0">
+                                <thead class="table-light">
+                                    <tr>
+                                        <th>Name</th>
+                                        <th>Type</th>
+                                        <th class="text-end">Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="categoriesTableBody">
+                                    <tr>
+                                        <td colspan="3" class="text-center text-muted py-4">Loading categories...</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- SECTION 2: PAYMENT METHODS -->
+            <div class="col-12 col-lg-6">
+                <div class="card shadow-sm border-0 h-100">
+                    <div class="card-header bg-white py-3 border-bottom d-flex justify-content-between align-items-center">
+                        <h5 class="card-title fw-bold mb-0 text-dark">
+                            💳 Payment Methods
+                        </h5>
+                        <span id="pmBadgeCount" class="badge bg-success">0 Total</span>
+                    </div>
+                    <div class="card-body">
+                        <!-- Add Payment Method Form -->
+                        <form id="addPaymentMethodForm" class="mb-4">
+                            <label for="newPaymentMethodName" class="form-label small fw-semibold text-muted">
+                                Add Custom Payment Method
+                            </label>
+                            <div class="input-group">
+                                <input type="text" class="form-control" id="newPaymentMethodName" placeholder="e.g., Paytm, Crypto, Forex Card" required maxlength="100">
+                                <button type="submit" class="btn btn-success" id="addPaymentMethodBtn">
+                                    + Add
+                                </button>
+                            </div>
+                        </form>
+
+                        <!-- Payment Methods Table -->
+                        <div class="table-responsive">
+                            <table class="table table-hover align-middle mb-0">
+                                <thead class="table-light">
+                                    <tr>
+                                        <th>Name</th>
+                                        <th>Type</th>
+                                        <th class="text-end">Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="paymentMethodsTableBody">
+                                    <tr>
+                                        <td colspan="3" class="text-center text-muted py-4">Loading payment methods...</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Edit Category Modal -->
+    <div class="modal fade" id="editCategoryModal" tabindex="-1" aria-labelledby="editCategoryModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title fw-bold" id="editCategoryModalLabel">Edit Category</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <div id="editCatAlert" class="alert d-none" role="alert"></div>
+                    <form id="editCategoryForm">
+                        <input type="hidden" id="editCategoryId">
+                        <div class="mb-3">
+                            <label for="editCategoryName" class="form-label">Category Name</label>
+                            <input type="text" class="form-control" id="editCategoryName" required maxlength="100">
+                        </div>
+                        <div class="text-end">
+                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                            <button type="submit" class="btn btn-primary" id="saveEditCatBtn">Save Changes</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Edit Payment Method Modal -->
+    <div class="modal fade" id="editPaymentMethodModal" tabindex="-1" aria-labelledby="editPaymentMethodModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title fw-bold" id="editPaymentMethodModalLabel">Edit Payment Method</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <div id="editPmAlert" class="alert d-none" role="alert"></div>
+                    <form id="editPaymentMethodForm">
+                        <input type="hidden" id="editPaymentMethodId">
+                        <div class="mb-3">
+                            <label for="editPaymentMethodName" class="form-label">Payment Method Name</label>
+                            <input type="text" class="form-control" id="editPaymentMethodName" required maxlength="100">
+                        </div>
+                        <div class="text-end">
+                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                            <button type="submit" class="btn btn-success" id="saveEditPmBtn">Save Changes</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Bootstrap Bundle JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    <!-- Shared Navbar & Session Guard Script -->
+    <script src="../assets/js/navbar.js"></script>
+
+    <script>
+        // Bootstrap Modal instances
+        let catModalInstance = null;
+        let pmModalInstance = null;
+
+        document.addEventListener("DOMContentLoaded", function () {
+            catModalInstance = new bootstrap.Modal(document.getElementById("editCategoryModal"));
+            pmModalInstance = new bootstrap.Modal(document.getElementById("editPaymentMethodModal"));
+
+            // Initial fetch of both datasets
+            loadCategories();
+            loadPaymentMethods();
+
+            // Form Submit Listeners
+            document.getElementById("addCategoryForm").addEventListener("submit", handleAddCategory);
+            document.getElementById("addPaymentMethodForm").addEventListener("submit", handleAddPaymentMethod);
+            document.getElementById("editCategoryForm").addEventListener("submit", handleSaveEditCategory);
+            document.getElementById("editPaymentMethodForm").addEventListener("submit", handleSaveEditPaymentMethod);
+        });
+
+        // ----------------------------------------------------
+        // CATEGORIES LOGIC
+        // ----------------------------------------------------
+
+        // Fetch and display categories
+        function loadCategories() {
+            fetch("../api/get_categories.php")
+                .then(res => res.json())
+                .then(response => {
+                    const tbody = document.getElementById("categoriesTableBody");
+                    if (response.status !== "success") {
+                        tbody.innerHTML = `<tr><td colspan="3" class="text-danger text-center">${escapeHtml(response.message)}</td></tr>`;
+                        return;
+                    }
+
+                    const categories = response.data;
+                    document.getElementById("catBadgeCount").innerText = `${categories.length} Total`;
+
+                    if (categories.length === 0) {
+                        tbody.innerHTML = `<tr><td colspan="3" class="text-muted text-center py-4">No categories found.</td></tr>`;
+                        return;
+                    }
+
+                    let rowsHtml = "";
+                    categories.forEach(item => {
+                        const isDefault = item.is_default === 1;
+                        rowsHtml += `
+                            <tr>
+                                <td class="fw-medium">${escapeHtml(item.name)}</td>
+                                <td>
+                                    ${isDefault 
+                                        ? '<span class="badge bg-secondary-subtle text-secondary border">System Default</span>' 
+                                        : '<span class="badge bg-primary-subtle text-primary border">Custom (Yours)</span>'}
+                                </td>
+                                <td class="text-end">
+                                    ${isDefault ? `
+                                        <span class="text-muted small fst-italic">Fixed</span>
+                                    ` : `
+                                        <button class="btn btn-sm btn-outline-primary me-1" onclick="openEditCategory(${item.id}, '${escapeHtml(item.name).replace(/'/g, "\\'")}')">
+                                            Edit
+                                        </button>
+                                        <button class="btn btn-sm btn-outline-danger" onclick="deleteCategory(${item.id}, '${escapeHtml(item.name).replace(/'/g, "\\'")}')">
+                                            Delete
+                                        </button>
+                                    `}
+                                </td>
+                            </tr>
+                        `;
+                    });
+                    tbody.innerHTML = rowsHtml;
+                })
+                .catch(err => {
+                    console.error("Categories fetch error:", err);
+                    showGlobalAlert("Failed to load categories. Please check your network connection.", "danger");
+                });
+        }
+
+        // Add Category
+        function handleAddCategory(e) {
+            e.preventDefault();
+            const input = document.getElementById("newCategoryName");
+            const btn = document.getElementById("addCategoryBtn");
+            const name = input.value.trim();
+
+            if (!name) return;
+
+            btn.disabled = true;
+            btn.innerText = "Adding...";
+
+            fetch("../api/add_category.php", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ name: name })
+            })
+            .then(res => res.json())
+            .then(data => {
+                btn.disabled = false;
+                btn.innerText = "+ Add";
+                if (data.status === "success") {
+                    showGlobalAlert(data.data.message, "success");
+                    input.value = "";
+                    loadCategories();
+                } else {
+                    showGlobalAlert(data.message, "danger");
+                }
+            })
+            .catch(() => {
+                btn.disabled = false;
+                btn.innerText = "+ Add";
+                showGlobalAlert("An error occurred while adding the category.", "danger");
+            });
+        }
+
+        // Open Edit Category Modal
+        function openEditCategory(id, name) {
+            document.getElementById("editCategoryId").value = id;
+            document.getElementById("editCategoryName").value = name;
+            hideAlert("editCatAlert");
+            catModalInstance.show();
+        }
+
+        // Save Edited Category
+        function handleSaveEditCategory(e) {
+            e.preventDefault();
+            const id = document.getElementById("editCategoryId").value;
+            const name = document.getElementById("editCategoryName").value.trim();
+            const btn = document.getElementById("saveEditCatBtn");
+
+            if (!name) return;
+
+            btn.disabled = true;
+            btn.innerText = "Saving...";
+
+            fetch("../api/update_category.php", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ id: id, name: name })
+            })
+            .then(res => res.json())
+            .then(data => {
+                btn.disabled = false;
+                btn.innerText = "Save Changes";
+                if (data.status === "success") {
+                    catModalInstance.hide();
+                    showGlobalAlert(data.data.message, "success");
+                    loadCategories();
+                } else {
+                    showAlert("editCatAlert", data.message, "danger");
+                }
+            })
+            .catch(() => {
+                btn.disabled = false;
+                btn.innerText = "Save Changes";
+                showAlert("editCatAlert", "Failed to update category.", "danger");
+            });
+        }
+
+        // Delete Category
+        function deleteCategory(id, name) {
+            if (!confirm(`Are you sure you want to delete custom category "${name}"?`)) {
+                return;
+            }
+
+            fetch("../api/delete_category.php", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ id: id })
+            })
+            .then(res => res.json())
+            .then(data => {
+                if (data.status === "success") {
+                    showGlobalAlert(data.data.message, "success");
+                    loadCategories();
+                } else {
+                    // Show friendly error message (e.g. if linked to expenses)
+                    showGlobalAlert(data.message, "warning");
+                }
+            })
+            .catch(() => {
+                showGlobalAlert("Failed to delete category due to network error.", "danger");
+            });
+        }
+
+        // ----------------------------------------------------
+        // PAYMENT METHODS LOGIC
+        // ----------------------------------------------------
+
+        // Fetch and display payment methods
+        function loadPaymentMethods() {
+            fetch("../api/get_payment_methods.php")
+                .then(res => res.json())
+                .then(response => {
+                    const tbody = document.getElementById("paymentMethodsTableBody");
+                    if (response.status !== "success") {
+                        tbody.innerHTML = `<tr><td colspan="3" class="text-danger text-center">${escapeHtml(response.message)}</td></tr>`;
+                        return;
+                    }
+
+                    const methods = response.data;
+                    document.getElementById("pmBadgeCount").innerText = `${methods.length} Total`;
+
+                    if (methods.length === 0) {
+                        tbody.innerHTML = `<tr><td colspan="3" class="text-muted text-center py-4">No payment methods found.</td></tr>`;
+                        return;
+                    }
+
+                    let rowsHtml = "";
+                    methods.forEach(item => {
+                        const isDefault = item.is_default === 1;
+                        rowsHtml += `
+                            <tr>
+                                <td class="fw-medium">${escapeHtml(item.name)}</td>
+                                <td>
+                                    ${isDefault 
+                                        ? '<span class="badge bg-secondary-subtle text-secondary border">System Default</span>' 
+                                        : '<span class="badge bg-success-subtle text-success border">Custom (Yours)</span>'}
+                                </td>
+                                <td class="text-end">
+                                    ${isDefault ? `
+                                        <span class="text-muted small fst-italic">Fixed</span>
+                                    ` : `
+                                        <button class="btn btn-sm btn-outline-success me-1" onclick="openEditPaymentMethod(${item.id}, '${escapeHtml(item.name).replace(/'/g, "\\'")}')">
+                                            Edit
+                                        </button>
+                                        <button class="btn btn-sm btn-outline-danger" onclick="deletePaymentMethod(${item.id}, '${escapeHtml(item.name).replace(/'/g, "\\'")}')">
+                                            Delete
+                                        </button>
+                                    `}
+                                </td>
+                            </tr>
+                        `;
+                    });
+                    tbody.innerHTML = rowsHtml;
+                })
+                .catch(err => {
+                    console.error("Payment methods fetch error:", err);
+                    showGlobalAlert("Failed to load payment methods.", "danger");
+                });
+        }
+
+        // Add Payment Method
+        function handleAddPaymentMethod(e) {
+            e.preventDefault();
+            const input = document.getElementById("newPaymentMethodName");
+            const btn = document.getElementById("addPaymentMethodBtn");
+            const name = input.value.trim();
+
+            if (!name) return;
+
+            btn.disabled = true;
+            btn.innerText = "Adding...";
+
+            fetch("../api/add_payment_method.php", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ name: name })
+            })
+            .then(res => res.json())
+            .then(data => {
+                btn.disabled = false;
+                btn.innerText = "+ Add";
+                if (data.status === "success") {
+                    showGlobalAlert(data.data.message, "success");
+                    input.value = "";
+                    loadPaymentMethods();
+                } else {
+                    showGlobalAlert(data.message, "danger");
+                }
+            })
+            .catch(() => {
+                btn.disabled = false;
+                btn.innerText = "+ Add";
+                showGlobalAlert("An error occurred while adding the payment method.", "danger");
+            });
+        }
+
+        // Open Edit Payment Method Modal
+        function openEditPaymentMethod(id, name) {
+            document.getElementById("editPaymentMethodId").value = id;
+            document.getElementById("editPaymentMethodName").value = name;
+            hideAlert("editPmAlert");
+            pmModalInstance.show();
+        }
+
+        // Save Edited Payment Method
+        function handleSaveEditPaymentMethod(e) {
+            e.preventDefault();
+            const id = document.getElementById("editPaymentMethodId").value;
+            const name = document.getElementById("editPaymentMethodName").value.trim();
+            const btn = document.getElementById("saveEditPmBtn");
+
+            if (!name) return;
+
+            btn.disabled = true;
+            btn.innerText = "Saving...";
+
+            fetch("../api/update_payment_method.php", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ id: id, name: name })
+            })
+            .then(res => res.json())
+            .then(data => {
+                btn.disabled = false;
+                btn.innerText = "Save Changes";
+                if (data.status === "success") {
+                    pmModalInstance.hide();
+                    showGlobalAlert(data.data.message, "success");
+                    loadPaymentMethods();
+                } else {
+                    showAlert("editPmAlert", data.message, "danger");
+                }
+            })
+            .catch(() => {
+                btn.disabled = false;
+                btn.innerText = "Save Changes";
+                showAlert("editPmAlert", "Failed to update payment method.", "danger");
+            });
+        }
+
+        // Delete Payment Method
+        function deletePaymentMethod(id, name) {
+            if (!confirm(`Are you sure you want to delete custom payment method "${name}"?`)) {
+                return;
+            }
+
+            fetch("../api/delete_payment_method.php", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ id: id })
+            })
+            .then(res => res.json())
+            .then(data => {
+                if (data.status === "success") {
+                    showGlobalAlert(data.data.message, "success");
+                    loadPaymentMethods();
+                } else {
+                    // Show friendly error message (e.g. if linked to expenses)
+                    showGlobalAlert(data.message, "warning");
+                }
+            })
+            .catch(() => {
+                showGlobalAlert("Failed to delete payment method due to network error.", "danger");
+            });
+        }
+
+        // ----------------------------------------------------
+        // UTILITIES
+        // ----------------------------------------------------
+        function showGlobalAlert(message, type) {
+            const alertBox = document.getElementById("globalAlert");
+            alertBox.className = `alert alert-${type} alert-dismissible fade show`;
+            alertBox.innerHTML = `
+                ${escapeHtml(message)}
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            `;
+            alertBox.classList.remove("d-none");
+            window.scrollTo({ top: 0, behavior: "smooth" });
+        }
+
+        function showAlert(containerId, message, type) {
+            const box = document.getElementById(containerId);
+            box.className = `alert alert-${type}`;
+            box.innerText = message;
+            box.classList.remove("d-none");
+        }
+
+        function hideAlert(containerId) {
+            const box = document.getElementById(containerId);
+            box.classList.add("d-none");
+        }
+
+        function escapeHtml(text) {
+            if (!text) return "";
+            const div = document.createElement("div");
+            div.innerText = text;
+            return div.innerHTML;
+        }
+    </script>
+</body>
+</html>
