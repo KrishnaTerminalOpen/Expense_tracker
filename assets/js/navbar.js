@@ -65,14 +65,22 @@ function renderNavbar(userName, rootPrefix, pagePrefix, apiPrefix) {
     const navContainer = document.getElementById("navbar-container");
     if (!navContainer) return;
 
+    // Ensure Bootstrap Icons is loaded
+    if (!document.querySelector('link[href*="bootstrap-icons"]')) {
+        const iconLink = document.createElement("link");
+        iconLink.rel = "stylesheet";
+        iconLink.href = "https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css";
+        document.head.appendChild(iconLink);
+    }
+
     const currentFile = window.location.pathname.split("/").pop();
 
     navContainer.innerHTML = `
         <nav class="navbar navbar-expand-lg navbar-dark navbar-spendwise shadow-sm">
-            <div class="container">
+            <div class="container-fluid px-xl-4 px-3">
                 <a class="navbar-brand" href="${pagePrefix}dashboard.html">
-                    <span class="fs-4">💎</span>
-                    <span class="fw-bold">SpendWise</span>
+                    <span class="brand-icon"><i class="bi bi-gem"></i></span>
+                    <span class="brand-text">SpendWise</span>
                 </a>
                 <button class="navbar-toggler border-0 shadow-none" type="button" data-bs-toggle="collapse" data-bs-target="#spendwiseNavbar" aria-controls="spendwiseNavbar" aria-expanded="false" aria-label="Toggle navigation">
                     <span class="navbar-toggler-icon"></span>
@@ -80,41 +88,57 @@ function renderNavbar(userName, rootPrefix, pagePrefix, apiPrefix) {
                 <div class="collapse navbar-collapse" id="spendwiseNavbar">
                     <ul class="navbar-nav me-auto mb-2 mb-lg-0 ms-lg-3">
                         <li class="nav-item">
-                            <a class="nav-link ${currentFile === 'dashboard.html' ? 'active' : ''}" href="${pagePrefix}dashboard.html">📊 Dashboard</a>
+                            <a class="nav-link ${currentFile === 'dashboard.html' ? 'active' : ''}" href="${pagePrefix}dashboard.html">
+                                <i class="bi bi-speedometer2"></i> Dashboard
+                            </a>
                         </li>
                         <li class="nav-item">
-                            <a class="nav-link ${currentFile === 'categories.html' ? 'active' : ''}" href="${pagePrefix}categories.html">🏷️ Categories</a>
+                            <a class="nav-link ${currentFile === 'categories.html' ? 'active' : ''}" href="${pagePrefix}categories.html">
+                                <i class="bi bi-tags"></i> Categories
+                            </a>
                         </li>
                         <li class="nav-item">
-                            <a class="nav-link ${currentFile === 'expenses.html' ? 'active' : ''}" href="${pagePrefix}expenses.html">💸 Expenses</a>
+                            <a class="nav-link ${currentFile === 'expenses.html' ? 'active' : ''}" href="${pagePrefix}expenses.html">
+                                <i class="bi bi-receipt"></i> Expenses
+                            </a>
                         </li>
                         <li class="nav-item">
-                            <a class="nav-link ${currentFile === 'history.html' ? 'active' : ''}" href="${pagePrefix}history.html">📜 History</a>
+                            <a class="nav-link ${currentFile === 'history.html' ? 'active' : ''}" href="${pagePrefix}history.html">
+                                <i class="bi bi-clock-history"></i> History
+                            </a>
                         </li>
                         <li class="nav-item">
-                            <a class="nav-link ${currentFile === 'budgets.html' ? 'active' : ''}" href="${pagePrefix}budgets.html">🎯 Budgets</a>
+                            <a class="nav-link ${currentFile === 'budgets.html' ? 'active' : ''}" href="${pagePrefix}budgets.html">
+                                <i class="bi bi-bullseye"></i> Budgets
+                            </a>
                         </li>
                         <li class="nav-item">
-                            <a class="nav-link ${currentFile === 'analytics.html' ? 'active' : ''}" href="${pagePrefix}analytics.html">📈 Analytics</a>
+                            <a class="nav-link ${currentFile === 'analytics.html' ? 'active' : ''}" href="${pagePrefix}analytics.html">
+                                <i class="bi bi-graph-up-arrow"></i> Analytics
+                            </a>
                         </li>
                         <li class="nav-item">
-                            <a class="nav-link ${currentFile === 'profile.html' ? 'active' : ''}" href="${pagePrefix}profile.html">⚙️ Settings</a>
+                            <a class="nav-link ${currentFile === 'profile.html' ? 'active' : ''}" href="${pagePrefix}profile.html">
+                                <i class="bi bi-gear"></i> Settings
+                            </a>
                         </li>
                     </ul>
                     <div class="d-flex align-items-center gap-3 mt-3 mt-lg-0">
                         <!-- Notification Bell with Pulsing Unread Badge -->
-                        <a href="${pagePrefix}notifications.html" class="nav-bell-link position-relative text-white text-decoration-none px-2 py-1" title="Notifications">
-                            <span class="fs-5">🔔</span>
+                        <a href="${pagePrefix}notifications.html" class="nav-bell-link position-relative text-white text-decoration-none p-2 d-inline-flex align-items-center justify-content-center" title="Notifications">
+                            <i class="bi bi-bell-fill fs-5"></i>
                             <span id="navUnreadBadge" class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger d-none shadow-sm" style="font-size: 0.65rem;">
                                 0
                             </span>
                         </a>
-                        <div class="d-flex align-items-center gap-2 px-2 py-1 rounded-pill" style="background: rgba(255, 255, 255, 0.08);">
-                            <span class="text-white-50 small ms-1">Hi,</span>
-                            <span class="text-white small fw-bold me-1">${escapeHtml(userName)}</span>
+                        <div class="d-flex align-items-center gap-2 px-3 py-1 rounded-pill" style="background: rgba(255, 255, 255, 0.08); border: 1px solid rgba(255, 255, 255, 0.12);">
+                            <i class="bi bi-person-circle text-white-50"></i>
+                            <span class="text-white-50 small">Hi,</span>
+                            <span class="text-white small fw-bold">${escapeHtml(userName)}</span>
                         </div>
-                        <button id="logoutBtn" class="btn btn-outline-light btn-sm px-3 rounded-pill" style="background: rgba(255, 255, 255, 0.06); border-color: rgba(255, 255, 255, 0.2);">
-                            Logout
+                        <button id="logoutBtn" class="btn btn-outline-light btn-sm px-3 rounded-pill d-flex align-items-center gap-1" style="background: rgba(255, 255, 255, 0.06); border-color: rgba(255, 255, 255, 0.2);">
+                            <i class="bi bi-box-arrow-right"></i>
+                            <span>Logout</span>
                         </button>
                     </div>
                 </div>
