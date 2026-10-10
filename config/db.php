@@ -7,6 +7,8 @@ $serverName = $_SERVER['SERVER_NAME'] ?? '';
 $httpHost   = $_SERVER['HTTP_HOST'] ?? '';
 
 $is_localhost = (
+    php_sapi_name() === 'cli' ||
+    empty($serverName) ||
     $serverName === 'localhost' || 
     $serverName === '127.0.0.1' || 
     $serverName === '::1' ||
