@@ -1,0 +1,21 @@
+# SpendWise Apache Configuration for XAMPP & InfinityFree
+
+# Set default start page
+DirectoryIndex index.html login.html index.php
+
+# Prevent directory listings
+Options -Indexes
+
+# Ensure UTF-8 character encoding
+AddDefaultCharset UTF-8
+
+# Protect sensitive database & config files from browser downloads
+<FilesMatch "^(\.env|\.git|\.gitignore|composer\.(json|lock)|spendwise\.sql|README\.md)$">
+    <IfModule mod_authz_core.c>
+        Require all denied
+    </IfModule>
+    <IfModule !mod_authz_core.c>
+        Order allow,deny
+        Deny from all
+    </IfModule>
+</FilesMatch>
