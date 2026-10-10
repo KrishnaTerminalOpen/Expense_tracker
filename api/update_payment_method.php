@@ -66,17 +66,8 @@ if (!$method) {
     exit();
 }
 
-// Default items (user_id IS NULL) cannot be edited
-if ($method['user_id'] === null) {
-    echo json_encode([
-        "status" => "error",
-        "message" => "Default system payment methods cannot be edited."
-    ]);
-    exit();
-}
-
-// User cannot edit another user's item
-if ((int)$method['user_id'] !== $user_id) {
+// User cannot edit another user's item (only own items or global defaults)
+if ($method['user_id'] !== null && (int)$method['user_id'] !== $user_id) {
     echo json_encode([
         "status" => "error",
         "message" => "You do not have permission to edit this payment method."
@@ -102,7 +93,7 @@ if (mysqli_stmt_num_rows($stmt) > 0) {
 mysqli_stmt_close($stmt);
 
 // Update payment method
-$updateSql = "UPDATE payment_methods SET name = ? WHERE id = ? AND user_id = ?";
+$updateSql = "UPDATE payment_methods SET name = ? WHERE id = ? AND (user_id IS NULL OR user_id = ?)";
 $stmt = mysqli_prepare($conn, $updateSql);
 mysqli_stmt_bind_param($stmt, "sii", $name, $id, $user_id);
 

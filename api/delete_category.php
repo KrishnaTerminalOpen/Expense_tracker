@@ -55,17 +55,8 @@ if (!$category) {
     exit();
 }
 
-// Reject deletion of system default categories
-if ($category['user_id'] === null) {
-    echo json_encode([
-        "status" => "error",
-        "message" => "Default system categories cannot be deleted."
-    ]);
-    exit();
-}
-
 // Reject deletion if owned by another user
-if ((int)$category['user_id'] !== $user_id) {
+if ($category['user_id'] !== null && (int)$category['user_id'] !== $user_id) {
     echo json_encode([
         "status" => "error",
         "message" => "You do not have permission to delete this category."
@@ -100,7 +91,7 @@ if ($usedCount > 0) {
 }
 
 // 3. Delete the category safely
-$deleteSql = "DELETE FROM categories WHERE id = ? AND user_id = ?";
+$deleteSql = "DELETE FROM categories WHERE id = ? AND (user_id IS NULL OR user_id = ?)";
 $stmt = mysqli_prepare($conn, $deleteSql);
 mysqli_stmt_bind_param($stmt, "ii", $id, $user_id);
 

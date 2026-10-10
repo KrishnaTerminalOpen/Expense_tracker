@@ -66,17 +66,8 @@ if (!$category) {
     exit();
 }
 
-// Default items (user_id IS NULL) cannot be edited
-if ($category['user_id'] === null) {
-    echo json_encode([
-        "status" => "error",
-        "message" => "Default system categories cannot be edited."
-    ]);
-    exit();
-}
-
-// User cannot edit another user's item
-if ((int)$category['user_id'] !== $user_id) {
+// User cannot edit another user's item (only own items or global defaults)
+if ($category['user_id'] !== null && (int)$category['user_id'] !== $user_id) {
     echo json_encode([
         "status" => "error",
         "message" => "You do not have permission to edit this category."
@@ -102,7 +93,7 @@ if (mysqli_stmt_num_rows($stmt) > 0) {
 mysqli_stmt_close($stmt);
 
 // Update category
-$updateSql = "UPDATE categories SET name = ? WHERE id = ? AND user_id = ?";
+$updateSql = "UPDATE categories SET name = ? WHERE id = ? AND (user_id IS NULL OR user_id = ?)";
 $stmt = mysqli_prepare($conn, $updateSql);
 mysqli_stmt_bind_param($stmt, "sii", $name, $id, $user_id);
 

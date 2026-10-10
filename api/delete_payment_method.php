@@ -55,17 +55,8 @@ if (!$method) {
     exit();
 }
 
-// Reject deletion of system default items
-if ($method['user_id'] === null) {
-    echo json_encode([
-        "status" => "error",
-        "message" => "Default system payment methods cannot be deleted."
-    ]);
-    exit();
-}
-
 // Reject deletion if owned by another user
-if ((int)$method['user_id'] !== $user_id) {
+if ($method['user_id'] !== null && (int)$method['user_id'] !== $user_id) {
     echo json_encode([
         "status" => "error",
         "message" => "You do not have permission to delete this payment method."
@@ -100,7 +91,7 @@ if ($usedCount > 0) {
 }
 
 // 3. Delete the payment method
-$deleteSql = "DELETE FROM payment_methods WHERE id = ? AND user_id = ?";
+$deleteSql = "DELETE FROM payment_methods WHERE id = ? AND (user_id IS NULL OR user_id = ?)";
 $stmt = mysqli_prepare($conn, $deleteSql);
 mysqli_stmt_bind_param($stmt, "ii", $id, $user_id);
 

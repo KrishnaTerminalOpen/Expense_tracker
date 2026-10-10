@@ -131,12 +131,12 @@ function renderNavbar(userName, rootPrefix, pagePrefix, apiPrefix) {
                                 0
                             </span>
                         </a>
-                        <div class="d-flex align-items-center gap-2 px-3 py-1 rounded-pill" style="background: rgba(255, 255, 255, 0.08); border: 1px solid rgba(255, 255, 255, 0.12);">
-                            <i class="bi bi-person-circle text-white-50"></i>
+                        <div class="nav-user-chip">
+                            <i class="bi bi-person-circle text-info"></i>
                             <span class="text-white-50 small">Hi,</span>
                             <span class="text-white small fw-bold">${escapeHtml(userName)}</span>
                         </div>
-                        <button id="logoutBtn" class="btn btn-outline-light btn-sm px-3 rounded-pill d-flex align-items-center gap-1" style="background: rgba(255, 255, 255, 0.06); border-color: rgba(255, 255, 255, 0.2);">
+                        <button id="logoutBtn" class="btn nav-logout-btn btn-sm d-flex align-items-center gap-1 shadow-sm">
                             <i class="bi bi-box-arrow-right"></i>
                             <span>Logout</span>
                         </button>
