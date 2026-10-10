@@ -68,48 +68,54 @@ function renderNavbar(userName, rootPrefix, pagePrefix, apiPrefix) {
     const currentFile = window.location.pathname.split("/").pop();
 
     navContainer.innerHTML = `
-        <nav class="navbar navbar-expand-lg navbar-dark bg-dark shadow-sm">
+        <nav class="navbar navbar-expand-lg navbar-dark navbar-spendwise shadow-sm">
             <div class="container">
-                <a class="navbar-brand fw-bold text-white" href="${pagePrefix}dashboard.html">
-                    💰 SpendWise
+                <a class="navbar-brand" href="${pagePrefix}dashboard.html">
+                    <span class="fs-4">💎</span>
+                    <span class="fw-bold">SpendWise</span>
                 </a>
-                <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#spendwiseNavbar" aria-controls="spendwiseNavbar" aria-expanded="false" aria-label="Toggle navigation">
-                    <span class="navbar-toggler-style"><span class="navbar-toggler-icon"></span></span>
+                <button class="navbar-toggler border-0 shadow-none" type="button" data-bs-toggle="collapse" data-bs-target="#spendwiseNavbar" aria-controls="spendwiseNavbar" aria-expanded="false" aria-label="Toggle navigation">
+                    <span class="navbar-toggler-icon"></span>
                 </button>
                 <div class="collapse navbar-collapse" id="spendwiseNavbar">
-                    <ul class="navbar-nav me-auto mb-2 mb-lg-0">
+                    <ul class="navbar-nav me-auto mb-2 mb-lg-0 ms-lg-3">
                         <li class="nav-item">
-                            <a class="nav-link ${currentFile === 'dashboard.html' ? 'active text-white' : ''}" href="${pagePrefix}dashboard.html">Dashboard</a>
+                            <a class="nav-link ${currentFile === 'dashboard.html' ? 'active' : ''}" href="${pagePrefix}dashboard.html">📊 Dashboard</a>
                         </li>
                         <li class="nav-item">
-                            <a class="nav-link ${currentFile === 'categories.html' ? 'active text-white' : ''}" href="${pagePrefix}categories.html">Categories &amp; Payment</a>
+                            <a class="nav-link ${currentFile === 'categories.html' ? 'active' : ''}" href="${pagePrefix}categories.html">🏷️ Categories</a>
                         </li>
                         <li class="nav-item">
-                            <a class="nav-link ${currentFile === 'expenses.html' ? 'active text-white' : ''}" href="${pagePrefix}expenses.html">Expenses</a>
+                            <a class="nav-link ${currentFile === 'expenses.html' ? 'active' : ''}" href="${pagePrefix}expenses.html">💸 Expenses</a>
                         </li>
                         <li class="nav-item">
-                            <a class="nav-link ${currentFile === 'history.html' ? 'active text-white' : ''}" href="${pagePrefix}history.html">History</a>
+                            <a class="nav-link ${currentFile === 'history.html' ? 'active' : ''}" href="${pagePrefix}history.html">📜 History</a>
                         </li>
                         <li class="nav-item">
-                            <a class="nav-link ${currentFile === 'budgets.html' ? 'active text-white' : ''}" href="${pagePrefix}budgets.html">Budgets</a>
+                            <a class="nav-link ${currentFile === 'budgets.html' ? 'active' : ''}" href="${pagePrefix}budgets.html">🎯 Budgets</a>
                         </li>
                         <li class="nav-item">
-                            <a class="nav-link ${currentFile === 'analytics.html' ? 'active text-white' : ''}" href="${pagePrefix}analytics.html">Analytics</a>
+                            <a class="nav-link ${currentFile === 'analytics.html' ? 'active' : ''}" href="${pagePrefix}analytics.html">📈 Analytics</a>
                         </li>
                         <li class="nav-item">
-                            <a class="nav-link ${currentFile === 'profile.html' ? 'active text-white' : ''}" href="${pagePrefix}profile.html">Profile &amp; Settings</a>
+                            <a class="nav-link ${currentFile === 'profile.html' ? 'active' : ''}" href="${pagePrefix}profile.html">⚙️ Settings</a>
                         </li>
                     </ul>
-                    <div class="d-flex align-items-center gap-3">
-                        <!-- Notification Bell with Unread Badge -->
-                        <a href="${pagePrefix}notifications.html" class="position-relative text-white text-decoration-none px-2" title="Notifications">
+                    <div class="d-flex align-items-center gap-3 mt-3 mt-lg-0">
+                        <!-- Notification Bell with Pulsing Unread Badge -->
+                        <a href="${pagePrefix}notifications.html" class="nav-bell-link position-relative text-white text-decoration-none px-2 py-1" title="Notifications">
                             <span class="fs-5">🔔</span>
-                            <span id="navUnreadBadge" class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger d-none" style="font-size: 0.65rem;">
+                            <span id="navUnreadBadge" class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger d-none shadow-sm" style="font-size: 0.65rem;">
                                 0
                             </span>
                         </a>
-                        <span class="text-light small">Welcome, <strong>${escapeHtml(userName)}</strong></span>
-                        <button id="logoutBtn" class="btn btn-outline-light btn-sm px-3">Logout</button>
+                        <div class="d-flex align-items-center gap-2 px-2 py-1 rounded-pill" style="background: rgba(255, 255, 255, 0.08);">
+                            <span class="text-white-50 small ms-1">Hi,</span>
+                            <span class="text-white small fw-bold me-1">${escapeHtml(userName)}</span>
+                        </div>
+                        <button id="logoutBtn" class="btn btn-outline-light btn-sm px-3 rounded-pill" style="background: rgba(255, 255, 255, 0.06); border-color: rgba(255, 255, 255, 0.2);">
+                            Logout
+                        </button>
                     </div>
                 </div>
             </div>
